@@ -6,8 +6,8 @@
 		<Nullable>enable</Nullable>
 
 		<!-- NuGet Metadata -->
-		<PackageId>PowerHttp.Session</PackageId>
-		<Version>1.0.0</Version>
+		<PackageId>Cymulate.Http.Package.Session</PackageId>
+		<Version>1.0.3</Version>
 		<Authors>Uri Briskin</Authors>
 		<Description>Session management, isolation, and observability for Cymulate.Http.Package. Provides scoped authentication, defensive policies, and transport context.</Description>
 		<PackageTags>session management authentication lifecycle transport isolation telemetry</PackageTags>

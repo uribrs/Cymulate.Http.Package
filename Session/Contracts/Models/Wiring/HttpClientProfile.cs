@@ -22,7 +22,5 @@ public sealed class HttpClientProfile
     // 💥 Circuit Breaker
     public CircuitBreakerOptions? CircuitBreaker { get; init; }
 
-    public HttpClientSecurityOptions Security { get; init; } = new();
-
     // 🧩 Future: Headers, BaseUrl, EnableHttp2, etc.
 }
