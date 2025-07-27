@@ -32,10 +32,11 @@ public static class AuthProviderCollection
 
     public static IAuthenticationProvider BuildOAuth2Provider(
         OAuth2AuthenticationConfiguration config,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        HttpClient httpClient)
     {
         var logger = loggerFactory.CreateLogger<OAuth2Authentication>();
-        var strategy = new OAuth2Authentication(Validate.NotNull(config), logger);
+        var strategy = new OAuth2Authentication(Validate.NotNull(config), httpClient, logger);
 
         var providerLogger = loggerFactory.CreateLogger<AuthenticationProvider>();
         return new AuthenticationProvider(strategy, providerLogger);

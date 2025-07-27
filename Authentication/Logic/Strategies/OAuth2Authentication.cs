@@ -17,11 +17,12 @@ public sealed class OAuth2Authentication : IRefreshableAuthenticator
 
     public OAuth2Authentication(
         OAuth2AuthenticationConfiguration config,
+        HttpClient http,
         ILogger<OAuth2Authentication> logger)
     {
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _http = new HttpClient(); // You can inject this later if needed
+        _http = http;
     }
 
     public async Task AuthenticateRequestAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)

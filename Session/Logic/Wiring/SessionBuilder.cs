@@ -23,7 +23,7 @@ public static class SessionBuilder
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var authProvider = AuthenticationOrchestrator.Create(profile.Auth, loggerFactory);
+        var authProvider = AuthenticationOrchestrator.Create(profile.Auth, loggerFactory, client);
 
         var timeoutPolicy = new TimeoutPolicy(profile.Timeout);
 
