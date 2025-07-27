@@ -21,8 +21,6 @@ public sealed class RateLimiterOptions
                 break;
 
             case RateLimiterKind.SlidingWindow:
-                if (FixedWindow is null)
-                    throw new InvalidOperationException("SlidingWindow requires FixedWindow base config.");
                 if (SlidingWindow is null)
                     throw new InvalidOperationException("SlidingWindow config is required.");
                 break;
@@ -45,8 +43,8 @@ public sealed class RateLimiterOptions
                 $"FixedWindow: {FixedWindow?.PermitLimit} permits / {FixedWindow?.Window.TotalSeconds}s, queue {FixedWindow?.QueueLimit}",
 
             RateLimiterKind.SlidingWindow =>
-                $"SlidingWindow: {FixedWindow?.PermitLimit} permits / {FixedWindow?.Window.TotalSeconds}s " +
-                $"with {SlidingWindow?.SegmentsPerWindow} segments, queue {FixedWindow?.QueueLimit}",
+                $"SlidingWindow: {SlidingWindow?.PermitLimit} permits / {SlidingWindow?.Window.TotalSeconds}s " +
+                $"with {SlidingWindow?.SegmentsPerWindow} segments, queue {SlidingWindow?.QueueLimit}",
 
             RateLimiterKind.TokenBucket =>
                 $"TokenBucket: {TokenBucket?.TokenBucketRefillRate} refill/sec, capacity {TokenBucket?.TokenBucketCapacity}, queue {TokenBucket?.QueueLimit}",

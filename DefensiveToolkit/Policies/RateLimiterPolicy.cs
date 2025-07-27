@@ -42,9 +42,8 @@ public sealed class RateLimiterPolicy : IResiliencePolicy, IAsyncDisposable
 
             case RateLimiterKind.SlidingWindow:
                 var sw = options.SlidingWindow!;
-                var baseFw = options.FixedWindow!;
                 _logger?.LogInformation("[RateLimiterPolicy] SlidingWindow: {PermitLimit} permits / {Window} window with {Segments} segments, queue: {QueueLimit}",
-                    baseFw.PermitLimit, baseFw.Window, sw.SegmentsPerWindow, baseFw.QueueLimit);
+                    sw.PermitLimit, sw.Window, sw.SegmentsPerWindow, sw.QueueLimit);
                 break;
 
             case RateLimiterKind.TokenBucket:
@@ -121,18 +120,18 @@ public sealed class RateLimiterPolicy : IResiliencePolicy, IAsyncDisposable
                 PermitLimit = options.FixedWindow!.PermitLimit,
                 Window = options.FixedWindow.Window,
                 QueueLimit = options.FixedWindow.QueueLimit,
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                AutoReplenishment = true
+                QueueProcessingOrder = options.FixedWindow.QueueProcessingOrder,
+                AutoReplenishment = options.FixedWindow.AutoReplenishment
             }),
 
             RateLimiterKind.SlidingWindow => new SlidingWindowRateLimiter(new SlidingWindowRateLimiterOptions
             {
-                PermitLimit = options.FixedWindow!.PermitLimit,
-                Window = options.FixedWindow.Window,
-                SegmentsPerWindow = options.SlidingWindow!.SegmentsPerWindow,
-                QueueLimit = options.FixedWindow.QueueLimit,
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                AutoReplenishment = true
+                PermitLimit = options.SlidingWindow!.PermitLimit,
+                Window = options.SlidingWindow.Window,
+                SegmentsPerWindow = options.SlidingWindow.SegmentsPerWindow,
+                QueueLimit = options.SlidingWindow.QueueLimit,
+                QueueProcessingOrder = options.SlidingWindow.QueueProcessingOrder,
+                AutoReplenishment = options.SlidingWindow.AutoReplenishment
             }),
 
             RateLimiterKind.TokenBucket => new TokenBucketRateLimiter(new TokenBucketRateLimiterOptions
@@ -141,8 +140,8 @@ public sealed class RateLimiterPolicy : IResiliencePolicy, IAsyncDisposable
                 TokensPerPeriod = (int)Math.Round(options.TokenBucket.TokenBucketRefillRate),
                 ReplenishmentPeriod = TimeSpan.FromSeconds(1),
                 QueueLimit = options.TokenBucket.QueueLimit,
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                AutoReplenishment = true
+                QueueProcessingOrder = options.TokenBucket.QueueProcessingOrder,
+                AutoReplenishment = options.TokenBucket.AutoReplenishment
             }),
 
             _ => throw new ArgumentOutOfRangeException(nameof(options.Kind), $"Unknown limiter kind: {options.Kind}")
