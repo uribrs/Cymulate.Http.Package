@@ -7,7 +7,7 @@
 
 		<!-- NuGet Metadata -->
 		<PackageId>Cymulate.Http.Package.Session</PackageId>
-		<Version>1.0.3</Version>
+		<Version>1.0.4</Version>
 		<Authors>Uri Briskin</Authors>
 		<Description>Session management, isolation, and observability for Cymulate.Http.Package. Provides scoped authentication, defensive policies, and transport context.</Description>
 		<PackageTags>session management authentication lifecycle transport isolation telemetry</PackageTags>
@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Cymulate.Http.Package.Authentication" Version="1.0.1" />
-    <PackageReference Include="Cymulate.Http.Package.DefensiveToolkit" Version="1.0.1" />
+    <PackageReference Include="Cymulate.Http.Package.DefensiveToolkit" Version="1.0.2" />
   </ItemGroup>
 
 </Project>

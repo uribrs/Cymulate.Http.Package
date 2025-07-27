@@ -9,70 +9,49 @@ using Polly.RateLimit;
 
 namespace DefensiveToolkit.Policies;
 
-public class RateLimiterPolicy : IResiliencePolicy, IAsyncDisposable
+public sealed class RateLimiterPolicy : IResiliencePolicy, IAsyncDisposable
 {
     private readonly RateLimiter _limiter;
     private readonly ILogger<RateLimiterPolicy>? _logger;
-    public static readonly IResiliencePolicy NoOp = new NoOpPolicy(typeof(RetryPolicy));
+    private const int WarnThresholdMs = 500;
 
-    private const int WarnThresholdMs = 500; // customizable
+    public static readonly IResiliencePolicy NoOp = new NoOpPolicy(typeof(RateLimiterPolicy));
 
     public RateLimiterPolicy(RateLimiterOptions options, ILogger<RateLimiterPolicy>? logger = null)
     {
         _logger = logger;
         ArgumentNullException.ThrowIfNull(options);
 
-        // Validate options before building the limiter
-        ValidateOptions(options);
-
+        options.Validate();
         _limiter = BuildLimiter(options);
 
-        _logger?.LogInformation("[RateLimiterPolicy] Using limiter kind: {Kind}", options.Kind);
-        _logger?.LogInformation("[RateLimiterPolicy] Using permit limit: {PermitLimit}", options.PermitLimit);
-        _logger?.LogInformation("[RateLimiterPolicy] Using window: {Window}", options.Window);
-        _logger?.LogInformation("[RateLimiterPolicy] Using queue limit: {QueueLimit}", options.QueueLimit);
-        _logger?.LogInformation("[RateLimiterPolicy] Using segments per window: {SegmentsPerWindow}", options.SegmentsPerWindow);
-        _logger?.LogInformation("[RateLimiterPolicy] Using token bucket refill rate: {TokenBucketRefillRate}", options.TokenBucketRefillRate);
-        _logger?.LogInformation("[RateLimiterPolicy] Using token bucket capacity: {TokenBucketCapacity}", options.TokenBucketCapacity);
+        LogLimiterConfiguration(options);
     }
 
-    private static void ValidateOptions(RateLimiterOptions options)
+    private void LogLimiterConfiguration(RateLimiterOptions options)
     {
-        // Validate enum value
-        if (!Enum.IsDefined(typeof(RateLimiterKind), options.Kind))
-        {
-            throw new ArgumentOutOfRangeException(nameof(options.Kind), options.Kind, "Invalid rate limiter kind");
-        }
+        _logger?.LogInformation("[RateLimiterPolicy] Using limiter kind: {Kind}", options.Kind);
 
-        // Validate all properties regardless of limiter type (strict validation)
-        if (options.PermitLimit <= 0)
+        switch (options.Kind)
         {
-            throw new ArgumentOutOfRangeException(nameof(options.PermitLimit), options.PermitLimit, "PermitLimit must be greater than 0");
-        }
+            case RateLimiterKind.FixedWindow:
+                var fw = options.FixedWindow!;
+                _logger?.LogInformation("[RateLimiterPolicy] FixedWindow: {PermitLimit} permits / {Window} window, queue: {QueueLimit}",
+                    fw.PermitLimit, fw.Window, fw.QueueLimit);
+                break;
 
-        if (options.QueueLimit < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options.QueueLimit), options.QueueLimit, "QueueLimit must be non-negative");
-        }
+            case RateLimiterKind.SlidingWindow:
+                var sw = options.SlidingWindow!;
+                var baseFw = options.FixedWindow!;
+                _logger?.LogInformation("[RateLimiterPolicy] SlidingWindow: {PermitLimit} permits / {Window} window with {Segments} segments, queue: {QueueLimit}",
+                    baseFw.PermitLimit, baseFw.Window, sw.SegmentsPerWindow, baseFw.QueueLimit);
+                break;
 
-        if (options.SegmentsPerWindow <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options.SegmentsPerWindow), options.SegmentsPerWindow, "SegmentsPerWindow must be greater than 0");
-        }
-
-        if (options.TokenBucketCapacity <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options.TokenBucketCapacity), options.TokenBucketCapacity, "TokenBucketCapacity must be greater than 0");
-        }
-
-        if (options.TokenBucketRefillRate <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options.TokenBucketRefillRate), options.TokenBucketRefillRate, "TokenBucketRefillRate must be greater than 0");
-        }
-
-        if (options.Window <= TimeSpan.Zero)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options.Window), options.Window, "Window must be greater than zero");
+            case RateLimiterKind.TokenBucket:
+                var tb = options.TokenBucket!;
+                _logger?.LogInformation("[RateLimiterPolicy] TokenBucket: {RefillRate}/s, capacity {Capacity}, queue: {QueueLimit}",
+                    tb.TokenBucketRefillRate, tb.TokenBucketCapacity, tb.QueueLimit);
+                break;
         }
     }
 
@@ -80,7 +59,6 @@ public class RateLimiterPolicy : IResiliencePolicy, IAsyncDisposable
     {
         var activity = DefensiveDiagnostics.StartPolicyActivity("RateLimiterPolicy", "ExecuteAsync");
         var stopwatch = Stopwatch.StartNew();
-
         RateLimitLease? lease = null;
 
         try
@@ -140,30 +118,30 @@ public class RateLimiterPolicy : IResiliencePolicy, IAsyncDisposable
         {
             RateLimiterKind.FixedWindow => new FixedWindowRateLimiter(new FixedWindowRateLimiterOptions
             {
-                PermitLimit = options.PermitLimit,
-                Window = options.Window,
-                QueueLimit = options.QueueLimit,
+                PermitLimit = options.FixedWindow!.PermitLimit,
+                Window = options.FixedWindow.Window,
+                QueueLimit = options.FixedWindow.QueueLimit,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 AutoReplenishment = true
             }),
 
             RateLimiterKind.SlidingWindow => new SlidingWindowRateLimiter(new SlidingWindowRateLimiterOptions
             {
-                PermitLimit = options.PermitLimit,
-                Window = options.Window,
-                SegmentsPerWindow = options.SegmentsPerWindow,
-                QueueLimit = options.QueueLimit,
+                PermitLimit = options.FixedWindow!.PermitLimit,
+                Window = options.FixedWindow.Window,
+                SegmentsPerWindow = options.SlidingWindow!.SegmentsPerWindow,
+                QueueLimit = options.FixedWindow.QueueLimit,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 AutoReplenishment = true
             }),
 
             RateLimiterKind.TokenBucket => new TokenBucketRateLimiter(new TokenBucketRateLimiterOptions
             {
-                TokenLimit = options.TokenBucketCapacity,
-                TokensPerPeriod = (int)Math.Round(options.TokenBucketRefillRate),
+                TokenLimit = options.TokenBucket!.TokenBucketCapacity,
+                TokensPerPeriod = (int)Math.Round(options.TokenBucket.TokenBucketRefillRate),
                 ReplenishmentPeriod = TimeSpan.FromSeconds(1),
+                QueueLimit = options.TokenBucket.QueueLimit,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = options.QueueLimit,
                 AutoReplenishment = true
             }),
 
