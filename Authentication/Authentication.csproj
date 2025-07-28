@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 
 	  <PackageId>Cymulate.Http.Package.Authentication</PackageId>
-	  <Version>1.0.2</Version>
+	  <Version>1.0.3</Version>
 	  <Authors>Uri Briskin</Authors>
 	  <Description>Provides authentication selectors for basic, ApiKey, bearer token, OAuth2, Jwt and no auth.</Description>
 	  <PackageTags>authentication basicAuth ApiKey bearerToken OAuth2 Jwt noAuth</PackageTags>
