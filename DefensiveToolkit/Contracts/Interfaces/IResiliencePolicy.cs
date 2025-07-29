@@ -1,4 +1,4 @@
-namespace DefensiveToolkit.Contracts;
+namespace DefensiveToolkit.Contracts.Interfaces;
 
 public interface IResiliencePolicy
 {
