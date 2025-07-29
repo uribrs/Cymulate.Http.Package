@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Threading.RateLimiting;
-using DefensiveToolkit.Contracts;
 using DefensiveToolkit.Contracts.Enums;
+using DefensiveToolkit.Contracts.Interfaces;
 using DefensiveToolkit.Contracts.Options;
 using DefensiveToolkit.Telemetry;
 using Microsoft.Extensions.Logging;

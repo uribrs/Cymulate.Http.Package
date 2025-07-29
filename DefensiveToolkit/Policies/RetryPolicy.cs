@@ -1,10 +1,10 @@
 using Polly;
 using System.Diagnostics;
-using DefensiveToolkit.Contracts;
 using DefensiveToolkit.Contracts.Options;
 using DefensiveToolkit.Telemetry;
 using Microsoft.Extensions.Logging;
 using DefensiveToolkit.Contracts.Enums;
+using DefensiveToolkit.Contracts.Interfaces;
 
 namespace DefensiveToolkit.Policies;
 

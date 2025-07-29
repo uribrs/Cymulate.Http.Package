@@ -1,4 +1,3 @@
-using DefensiveToolkit.Contracts;
 using DefensiveToolkit.Contracts.Interfaces;
 using DefensiveToolkit.Telemetry;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,4 @@
-﻿using DefensiveToolkit.Contracts;
+﻿using DefensiveToolkit.Contracts.Interfaces;
 
 namespace DefensiveToolkit.Policies;
 
